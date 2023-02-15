@@ -16,7 +16,7 @@
               <b-dropdown text="Действия" variant="default" size="sm">
                 <b-dropdown-item-button @click="changeText('Daily')">Добавить</b-dropdown-item-button>
                 <b-dropdown-item-button @click="changeText('Weekly')">Пакетная загрузка</b-dropdown-item-button>
-                <b-dropdown-item-button @click="changeText('Daily')">Список пользователей</b-dropdown-item-button>
+                <b-dropdown-item-button @click="$router.push('users')">Список пользователей</b-dropdown-item-button>
                 <b-dropdown-item-button @click="changeText('Daily')">Управление адмнистраторами</b-dropdown-item-button>
               </b-dropdown>
             </div>
@@ -62,7 +62,7 @@
               </h4>
               <b-dropdown text="Действия" variant="default" size="sm">
                 <b-dropdown-item-button @click="changeText('Daily')">Добавить</b-dropdown-item-button>
-                <b-dropdown-item-button @click="changeText('Weekly')">Список тестов</b-dropdown-item-button>
+                <b-dropdown-item-button @click="$router.push('tests')">Список тестов</b-dropdown-item-button>
               </b-dropdown>
             </div>
             <div class="px-5">
@@ -106,8 +106,7 @@
                 Методички
               </h4>
               <b-dropdown text="Действия" variant="default" size="sm">
-                <b-dropdown-item-button @click="changeText('Daily')">Добавить</b-dropdown-item-button>
-                <b-dropdown-item-button @click="changeText('Weekly')">Список методичек</b-dropdown-item-button>
+                <b-dropdown-item-button @click="$router.push('tests')">Список</b-dropdown-item-button>
               </b-dropdown>
             </div>
             <div class="px-5">
