@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "animate.css": "^4.1.1",
+    "ansi-regex": "^6.0.1",
     "apexcharts": "^3.22.2",
     "awesome-bootstrap-checkbox": "^1.0.1",
     "axios": "^1.2.5",
@@ -32,6 +33,7 @@
     "vue": "^2.6.12",
     "vue-apexcharts": "^1.6.0",
     "vue-echarts": "^4.1.0",
+    "vue-full-loading": "^1.2.1",
     "vue-router": "^3.4.9",
     "vue-simple-calendar": "^5.0.1",
     "vue-toasted": "^1.1.28",

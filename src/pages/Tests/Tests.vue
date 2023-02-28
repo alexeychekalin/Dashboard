@@ -89,7 +89,7 @@
       <!-- Info modal -->
       <b-modal centered :id="BookModal.id" :title="BookModal.title" ok-only @hide="resetInfoModal">
         <b-list-group >
-          <b-list-group-item button v-for="(book, ind) in BookModal.content" :key="book.year">{{ind + 1}}. {{book.Description.split('/').pop()}}</b-list-group-item>
+          <b-list-group-item button v-for="(book, ind) in BookModal.content" :key="book.id" @click="getlearning(book.id)" >{{ind + 1}}. {{book.Description.split('/').pop()}}</b-list-group-item>
         </b-list-group>
 
       </b-modal>
@@ -136,6 +136,30 @@ export default {
       selected :'',
   }),
   methods: {
+    getlearning(id){
+      axios({
+        url: 'http://194.87.101.58/json/getlearning',
+        method: 'GET',
+        params: {
+          id: id
+        },
+        responseType: 'blob', // important
+      })
+          .then((res) => {
+            this.download(res)
+            this.show = false;
+          })
+    },
+    download(response){
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      let filename = response.headers['content-disposition'];
+      link.setAttribute("download", filename.split('=')[1].replaceAll('"', ''));
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
     edit(item, index, button) {
       this.selected = item.IdDepart;
       this.infoModal.title = item.ФИО;

@@ -1,5 +1,9 @@
 <template>
   <div class="dashboard-page">
+    <loading
+        :show="show"
+        :label="label">
+    </loading>
     <h1 class="page-title">Панель управления</h1>
     <b-row>
       <b-col xs="12" lg="6" xl="4" >
@@ -18,31 +22,32 @@
                 <b-dropdown-item-button @click="changeText('Weekly')">Пакетная загрузка</b-dropdown-item-button>
                 <b-dropdown-item-button @click="$router.push('users')">Список пользователей</b-dropdown-item-button>
                 <b-dropdown-item-button @click="changeText('Daily')">Управление адмнистраторами</b-dropdown-item-button>
+                <b-dropdown-item-button @click="registered()">Отчет по зарегистрированным</b-dropdown-item-button>
               </b-dropdown>
             </div>
             <div class="px-5">
-              <h4 class="fw-semi-bold mb-sm mt-sm">890987</h4>
+              <h4 class="fw-semi-bold mb-sm mt-sm">{{statistics.ReigstUsers + statistics.DontReigstUsers}}</h4>
               <div class="d-flex">
                 <div class="w-50 py-3 pr-2">
                   <div class="d-flex align-items-start">
-                    <h6>+123</h6>
+                    <h6>{{statistics.ReigstUsers}}</h6>
                     <i class="la la-send la-lg ml-sm text-success"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>Зарегистрировались</small></p>
                 </div>
                 <div class="w-50 py-3 pl-2">
                   <div class="d-flex align-items-start">
-                    <h6>678%</h6>
+                    <h6>{{statistics.DontReigstUsers}}</h6>
                     <i class="la la-warning la-lg ml-sm text-warning"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>Не запускали бота</small></p>
                 </div>
                 <div class="w-50 py-3 pl-2">
                   <div class="d-flex align-items-start">
-                    <h6>678%</h6>
-                    <i class="la la-thumbs-down la-lg ml-sm text-danger"/>
+                    <h6>{{statistics.TodayTestDone}}</h6>
+                    <i class="la la-thumbs-up la-lg ml-sm text-success"/>
                   </div>
-                  <p class="text-muted mb-0 mr"><small>Не прошли входные</small></p>
+                  <p class="text-muted mb-0 mr"><small>Прошли тест сегодня</small></p>
                 </div>
               </div>
             </div>
@@ -66,25 +71,25 @@
               </b-dropdown>
             </div>
             <div class="px-5">
-              <h4 class="fw-semi-bold mb-sm mt-sm">890987</h4>
+              <h4 class="fw-semi-bold mb-sm mt-sm">{{statistics.CountOrdinaryTests + statistics.CountEnterTests + statistics.CountExistsTests}}</h4>
               <div class="d-flex">
                 <div class="w-50 py-3 pr-2">
                   <div class="d-flex align-items-start">
-                    <h6>+123</h6>
+                    <h6>{{statistics.CountOrdinaryTests}}</h6>
                     <i class="la la-question-circle la-lg ml-sm text-success"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>Рабочих тестов</small></p>
                 </div>
                 <div class="w-50 py-3 pl-2">
                   <div class="d-flex align-items-start">
-                    <h6>678%</h6>
+                    <h6>{{statistics.CountEnterTests}}</h6>
                     <i class="la la-upload la-lg ml-sm text-warning"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>Входных тестов</small></p>
                 </div>
                 <div class="w-50 py-3 pl-2">
                   <div class="d-flex align-items-start">
-                    <h6>678%</h6>
+                    <h6>{{statistics.CountExistsTests}}</h6>
                     <i class="la la-download la-lg ml-sm text-danger"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>Выходных тестов</small></p>
@@ -110,18 +115,18 @@
               </b-dropdown>
             </div>
             <div class="px-5">
-              <h4 class="fw-semi-bold mb-sm mt-sm">890987</h4>
+              <h4 class="fw-semi-bold mb-sm mt-sm">{{statistics.CountWithMat + statistics.DontCountWithMat}}</h4>
               <div class="d-flex">
                 <div class="w-50 py-3 pr-2">
                   <div class="d-flex align-items-start">
-                    <h6>+123</h6>
+                    <h6>{{statistics.CountWithMat}}</h6>
                     <i class="la la-book-open la-lg ml-sm text-success"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>с методическими материалами</small></p>
                 </div>
                 <div class="w-50 py-3 pl-2">
                   <div class="d-flex align-items-start">
-                    <h6>678%</h6>
+                    <h6>{{statistics.DontCountWithMat}}</h6>
                     <i class="la la-book la-lg ml-sm text-warning"/>
                   </div>
                   <p class="text-muted mb-0 mr"><small>без методических материалов</small></p>
@@ -173,7 +178,7 @@
 
 <script>
 import Widget from '@/components/Widget/Widget';
-
+import loading from 'vue-full-loading'
 import { Chart } from 'highcharts-vue';
 import axios from "axios";
 
@@ -183,7 +188,7 @@ import { CalendarView, CalendarViewHeader } from "vue-simple-calendar"
 export default {
   name: 'Dashboard',
   components: {
-    Widget, highcharts: Chart,CalendarView, CalendarViewHeader
+    Widget, highcharts: Chart,CalendarView, CalendarViewHeader, loading
   },
   data: () => ({
       calendarModal: {
@@ -194,9 +199,34 @@ export default {
       },
       selected :'',
       showDate: new Date(),
-      events: []
+      events: [],
+      statistics: [],
+      show: false,
+      label: 'Обрабатывем данные...'
   }),
   methods: {
+    registered(){
+      this.show = true;
+      axios({
+        url: 'http://194.87.101.58/json/selectreport',
+        method: 'GET',
+        responseType: 'blob', // important
+      })
+          .then((res) => {
+            this.download(res)
+            this.show = false;
+          })
+    },
+    download(response){
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      let filename = response.headers['content-disposition'];
+      link.setAttribute("download", filename.split('=')[1].replaceAll('"', ''));
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
     clickCalendar(e){
       this.calendarModal.title = e.title;
       this.calendarModal.content = e.Description;
@@ -219,11 +249,18 @@ export default {
 
   },
   mounted() {
+    this.show = true;
     // Получаем список дат для календаря
     axios.get('http://194.87.101.58/json/DateNameOtvtstTest')
         .then(res => {
           this.events = res.data;
         })
+
+    axios.get('http://194.87.101.58/json/json_dump_Statistics')
+        .then(res => {
+          this.statistics = res.data;
+        })
+    this.show = false;
   },
   computed: {
     rows(){
