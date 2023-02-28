@@ -45,7 +45,7 @@
                 >
                   <template #cell(actions)="row">
                     <div>
-                        <b-button size="sm" class="mr-sm" variant="primary">Отчет</b-button>
+                        <b-button size="sm" class="mr-sm" @click="getreports(row.item, row.index, $event.target)" variant="primary">Отчеты</b-button>
                         <b-button size="sm" class="mr-sm" variant="warning" @click="edit(row.item, row.index, $event.target)">Изменить</b-button>
                         <b-button size="sm"  variant="danger">Удалить</b-button>
                     </div>
@@ -81,6 +81,13 @@
         <label for="input-live">Профессия:</label>
         <b-form-input id="profession" v-model="infoModal.content.Профессия" placeholder="Enter your name"></b-form-input>
       </b-modal>
+    <!-- Info modal -->
+    <b-modal centered :id="RepModal.id" title="Список пройденных тестов" ok-only @hide="resetInfoModal">
+      <b-list-group >
+        <b-list-group-item button v-for="(report, ind) in RepModal.content" :key="report.id" @click="getreport(report, selected)" >{{report.Name_t }} (  {{report.kvartal}} квартал {{report.year}} года) </b-list-group-item>
+      </b-list-group>
+
+    </b-modal>
   </div>
 </template>
 
@@ -117,10 +124,66 @@ export default {
         title: '',
         content: ''
       },
-      otdel:[]
+      otdel:[],
+      reports:[],
+      RepModal:{
+        id: 'rep-modal',
+        content: ''
+      },
   }),
   methods: {
-
+    getreports(item, index, button){
+      //this.show2 = true
+      axios({
+        url: 'http://194.87.101.58/json/getallreports',
+        method: 'GET',
+        params: {
+          chatid: item.ChatID
+        },
+      })
+          .then((res) => {
+            this.RepModal.content = res.data;
+           // this.show2 = false;
+          })
+      //console.log(this.RepModal)
+      this.selected = item.id;
+      this.RepModal.title = item.Name_t;
+      //this.BookModal.content = t;
+      this.$root.$emit('bv::show::modal', this.RepModal.id, button)
+    },
+    getreport(item, user){
+      //this.show2 = true
+      axios({
+        url: 'http://194.87.101.58/json/getreport',
+        method: 'post',
+        params: {
+          year: item.year,
+          kvartal: item.kvartal,
+          id: user,
+          depart: item.otdel
+        },
+        responseType: 'blob', // important
+      })
+          .then((res) => {
+            this.download(res)
+            //this.show2 = false;
+          })
+      //console.log(this.RepModal)
+      this.selected = item.id;
+      this.RepModal.title = item.Name_t;
+      //this.BookModal.content = t;
+      this.$root.$emit('bv::show::modal', this.RepModal.id)
+    },
+    download(response){
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      let filename = response.headers['content-disposition'];
+      link.setAttribute("download", filename.split('=')[1].replaceAll('"', ''));
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
     edit(item, index, button) {
       this.selected = item.IdDepart;
       this.infoModal.title = item.ФИО;

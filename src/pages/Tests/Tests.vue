@@ -1,5 +1,9 @@
 <template>
   <div class="dashboard-page">
+    <loading
+        :show="show2"
+        :label="label">
+    </loading>
     <h1 class="page-title">Список тестов</h1>
     <b-row>
         <b-col xs="12">
@@ -99,13 +103,12 @@
 <script>
 import Widget from '@/components/Widget/Widget';
 import axios from "axios";
-
-import { CalendarView, CalendarViewHeader } from "vue-simple-calendar"
+import loading from 'vue-full-loading'
 
 export default {
   name: 'Dashboard',
   components: {
-    Widget, CalendarView, CalendarViewHeader
+    Widget, loading
   },
   data: () => ({
       people: [],
@@ -134,9 +137,12 @@ export default {
       otdel:[],
       books:[],
       selected :'',
+      show2: false,
+      label: 'Обрабатывем данные...'
   }),
   methods: {
     getlearning(id){
+      this.show2 = true
       axios({
         url: 'http://194.87.101.58/json/getlearning',
         method: 'GET',
@@ -147,7 +153,7 @@ export default {
       })
           .then((res) => {
             this.download(res)
-            this.show = false;
+            this.show2 = false;
           })
     },
     download(response){
