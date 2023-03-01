@@ -66,8 +66,9 @@
                 Тесты
               </h4>
               <b-dropdown text="Действия" variant="default" size="sm">
-                <b-dropdown-item-button @click="changeText('Daily')">Добавить</b-dropdown-item-button>
+                <b-dropdown-item-button @click="clickUploadTests()">Добавить</b-dropdown-item-button>
                 <b-dropdown-item-button @click="$router.push('tests')">Список тестов</b-dropdown-item-button>
+                <b-dropdown-item-button @click="clickReportOtdel()">Отчет по отделу</b-dropdown-item-button>
               </b-dropdown>
             </div>
             <div class="px-5">
@@ -173,6 +174,140 @@
       <h5 class="m-t-1 pt-sm">Ответственный: </h5>
       <p id="name"> {{calendarModal.who}} </p>
     </b-modal>
+
+    <!-- Report Otdel modal -->
+    <b-modal centered id="reportOtdel_modal" title="Отчет по отделу" @hide="resetReportOtdel">
+      <b-form-group
+          label="Выберите отдел"
+          label-for="input-formatter"
+          class="mb-0"
+      >
+        <b-form-select
+            v-model="selReportotdel"
+            :options="otdel"
+            value-field="id"
+            text-field="Name"
+            @change="allReportsOtdel()"
+        ></b-form-select>
+      </b-form-group>
+      <b-form-group
+          label="Список доступных отчетов"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+          v-if="reportsForOtdel.length >0"
+      >
+        <b-list-group>
+          <b-list-group-item
+              button v-for="report in reportsForOtdel"
+              class="mt-2"
+              :key="report.id"
+              @click="getReportOtdel(report.kvartal, report.year)"
+          >{{report.kvartal}} квартал {{report.year}} года</b-list-group-item>
+        </b-list-group>
+      </b-form-group>
+    </b-modal>
+
+    <!-- Upload test modal -->
+    <b-modal centered :id="testupload.id" hide-footer title="Загрузка нового теста" @hide="resetUploadModal">
+      <b-alert
+          class="mb-3"
+          v-if="alert !== ''"
+          show
+          :variant="alert"
+      >
+        {{alertMessage}}
+      </b-alert>
+      <b-form-group
+          label="Название теста"
+          label-for="input-formatter"
+          class="mb-0"
+      >
+        <b-form-input
+            :state="Boolean(testupload.name_test)"
+            id="name_test"
+            v-model="testupload.name_test"
+            placeholder="Введите название теста"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+          label="Описание теста"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-textarea
+            id="descr_text"
+            v-model="testupload.descr_text"
+            placeholder="Введите описание теста"
+            rows="3"
+            max-rows="3"
+        ></b-form-textarea>
+      </b-form-group>
+      <b-form-group
+          label="Ответсвенный"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+          description="Вводите строго в формате Иванов И.И."
+      >
+        <b-form-input
+            :state="Boolean(testupload.otvetstv)"
+            id="otvetstv"
+            v-model="testupload.otvetstv"
+            placeholder="Введите ответственного"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+          label="Должность"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-input
+            :state="Boolean(testupload.dolch_otvetstv)"
+            id="dolch_otvetstv"
+            v-model="testupload.dolch_otvetstv"
+            placeholder="Введите должность ответственного"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+          label="Отдел"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-select
+            :state="Boolean(testupload.depart)"
+            v-model="testupload.depart"
+            :options="otdel"
+            value-field="id"
+            text-field="Name"
+        ></b-form-select>
+      </b-form-group>
+      <b-form-group
+          label="Дата сдачи"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-input
+            id="deadline"
+            type="date"
+            v-model="testupload.deadline"
+            :state="Boolean(testupload.deadline)"
+            class="mb-2"></b-form-input>
+      </b-form-group>
+      <b-form-group
+          label="Файл"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-file
+            multiple
+            :state="Boolean(testupload.files)"
+            placeholder="Выберите файл"
+            drop-placeholder="Перетащите файл"
+            accept=".xls, .xlsx"
+            @change="handleFileUpload( $event )"
+        ></b-form-file>
+      </b-form-group>
+      <b-button class="mt-4" v-if="Boolean(checker())" variant="success" block @click="uploadTest()">Загрузить</b-button>
+    </b-modal>
   </div>
 </template>
 
@@ -197,14 +332,65 @@ export default {
         content: '',
         who:''
       },
+      testupload:{
+        name_test:'',
+        otvetstv:'',
+        dolch_otvetstv:'',
+        deadline:'',
+        files:null,
+        descr_text:'',
+        depart:'',
+        id: 'test-upload'
+      },
       selected :'',
       showDate: new Date(),
       events: [],
       statistics: [],
       show: false,
-      label: 'Обрабатывем данные...'
+      label: 'Обрабатывем данные...',
+      otdel:[],
+      selReportotdel:'',
+      reportsForOtdel: [],
+      alert:'',
+      alertMessage:'',
+
   }),
   methods: {
+    checker(){
+      return Boolean(this.testupload.files)&&Boolean(this.testupload.name_test)&&Boolean(this.testupload.name_test)&&Boolean(this.testupload.dolch_otvetstv)&&Boolean(this.testupload.deadline)&&Boolean(this.testupload.depart)
+    },
+    handleFileUpload(){
+      this.testupload.files = event.target.files[0];
+    },
+    uploadTest(){
+      //let file = this.testupload.files.$refs.file.files[0];
+      let formData = new FormData();
+      formData.append('files', this.testupload.files);
+      formData.append('name_test', this.testupload.name_test);
+      formData.append('otvetstv', this.testupload.otvetstv);
+      formData.append('dolch_otvetstv', this.testupload.dolch_otvetstv);
+      formData.append('deadline', this.testupload.deadline);
+      formData.append('descr_text', this.testupload.descr_text);
+      formData.append('depart', this.testupload.depart);
+      const config = {
+        headers: { 'content-type': 'multipart/form-data' }
+      }
+      axios.post('http://194.87.101.58/json/upload_tests', formData, config)
+          .then((res) => {
+            if(res.data[1] === 200){
+              this.alert = 'success'
+              this.alertMessage = res.data[0]
+              this.resetUploadModal()
+            }
+            else{
+              this.$root.$emit('bv::hide::modal', 'reportOtdel_modal')
+
+              this.alert = 'danger'
+              this.alertMessage = res.data[0]
+            }
+            this.show = false;
+          })
+    },
     registered(){
       this.show = true;
       axios({
@@ -214,6 +400,36 @@ export default {
       })
           .then((res) => {
             this.download(res)
+            this.show = false;
+          })
+    },
+    getReportOtdel(kvartal, year){
+      this.show = true;
+      axios({
+        url: 'http://194.87.101.58/json/getreportotdel',
+        method: 'GET',
+        params: {
+          kvartal: kvartal,
+          yaer: year,
+          id_depart: this.selReportotdel
+        },
+      })
+          .then((res) => {
+            this.download(res)
+            this.show = false;
+          })
+    },
+    allReportsOtdel(){
+      this.show = true;
+      axios({
+        url: 'http://194.87.101.58/json/getallreportsotdel',
+        method: 'GET',
+        params: {
+          otdel: this.selReportotdel
+        },
+      })
+          .then((res) => {
+            this.reportsForOtdel = res.data
             this.show = false;
           })
     },
@@ -233,6 +449,12 @@ export default {
       this.calendarModal.who = e.Otvetstv;
       this.$root.$emit('bv::show::modal', this.calendarModal.id)
     },
+    clickUploadTests(){
+      this.$root.$emit('bv::show::modal', this.testupload.id)
+    },
+    clickReportOtdel(){
+      this.$root.$emit('bv::show::modal', 'reportOtdel_modal')
+    },
     setShowDate(d) {
       this.showDate = d;
     },
@@ -241,6 +463,20 @@ export default {
       this.calendarModal.who = ''
       this.calendarModal.content = ''
     },
+    resetReportOtdel() {
+      this.selReportotdel = ''
+      this.reportsForOtdel = []
+    },
+    resetUploadModal() {
+      this.testupload.name_test = ''
+      this.testupload.depart = ''
+      this.testupload.otvetstv = ''
+      this.testupload.deadline = ''
+      this.testupload.dolch_otvetstv = ''
+      this.testupload.files = null
+      this.testupload.descr_text = ''
+    },
+
     onFiltered(filteredItems) {
       // Trigger pagination to update the number of buttons/pages due to filtering
       this.totalRows = filteredItems.length
@@ -259,6 +495,11 @@ export default {
     axios.get('http://194.87.101.58/json/json_dump_Statistics')
         .then(res => {
           this.statistics = res.data;
+        })
+
+    axios.get('http://194.87.101.58/login/jsondepart')
+        .then(res => {
+          this.otdel = res.data;
         })
     this.show = false;
   },

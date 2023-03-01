@@ -95,7 +95,6 @@
         <b-list-group >
           <b-list-group-item button v-for="(book, ind) in BookModal.content" :key="book.id" @click="getlearning(book.id)" >{{ind + 1}}. {{book.Description.split('/').pop()}}</b-list-group-item>
         </b-list-group>
-
       </b-modal>
   </div>
 </template>

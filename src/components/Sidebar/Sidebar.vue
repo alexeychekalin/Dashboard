@@ -4,16 +4,11 @@
         :class="{sidebar: true, sidebarStatic, sidebarOpened}"
         @mouseenter="sidebarMouseEnter"
         @mouseleave="sidebarMouseLeave"
+        style="height: 100%"
     >
       <header class="logo">
-        <router-link to="/app/dashboard"><span class="primary-word">Sing</span> <span class="secondary-word"> App</span></router-link>
+        <router-link to="/app/dashboard"><span class="primary-word">УАВР</span> <span class="secondary-word"> БЕЛОЯРСКОЕ </span></router-link>
       </header>
-
-      <a class="generator-link navTitle" target="_blank" href="https://flatlogic.com/generator">Generate App</a>
-
-      <h5 class="navTitle first">
-        APP
-      </h5>
       <ul class="nav">
         <NavLink
             :activeItem="activeItem"
@@ -35,7 +30,7 @@
             :activeItem="activeItem"
             header="Тесты"
             link="/app/tests"
-            iconName="flaticon-list"
+            iconName="flaticon-list-1"
             index="tests"
             isHeader
         />
@@ -70,45 +65,6 @@
             ]"
         />
       </ul>
-      <h5 class="navTitle">
-        LABELS
-      </h5>
-      <ul class="sidebarLabels">
-        <li>
-          <a href="#">
-            <i class="fa fa-circle text-danger"/>
-            <span class="labelName">Core</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="fa fa-circle text-primary"/>
-            <span class="labelName">UI Elements</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="fa fa-circle text-success"/>
-            <span class="labelName">Forms</span>
-          </a>
-        </li>
-      </ul>
-      <h5 class="navTitle">
-        PROJECTS
-      </h5>
-      <div class="sidebarAlerts">
-        <b-alert
-            v-for="alert in alerts"
-            :key="alert.id"
-            class="sidebarAlert" variant="transparent"
-            show dismissible
-        >
-          <span>{{alert.title}}</span><br/>
-          <b-progress class="sidebarProgress progress-xs mt-1"
-                      :variant="alert.color" :value="alert.value" :max="100"/>
-          <small>{{alert.footer}}</small>
-        </b-alert>
-      </div>
     </nav>
   </div>
 </template>

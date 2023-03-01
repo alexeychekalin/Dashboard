@@ -84,7 +84,7 @@
     <!-- Info modal -->
     <b-modal centered :id="RepModal.id" title="Список пройденных тестов" ok-only @hide="resetInfoModal">
       <b-list-group >
-        <b-list-group-item button v-for="(report, ind) in RepModal.content" :key="report.id" @click="getreport(report, selected)" >{{report.Name_t }} (  {{report.kvartal}} квартал {{report.year}} года) </b-list-group-item>
+        <b-list-group-item button v-for="report in RepModal.content" :key="report.id" @click="getreport(report, selected)" >{{report.Name_t }} (  {{report.kvartal}} квартал {{report.year}} года) </b-list-group-item>
       </b-list-group>
 
     </b-modal>
