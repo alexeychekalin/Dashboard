@@ -49,9 +49,9 @@
                 >
                   <template #cell(actions)="row">
                     <div>
-                        <b-button size="sm" class="mr-sm" variant="primary">Удалить</b-button>
-                        <b-button size="sm" class="mr-sm" variant="warning" @click="edit(row.item, row.index, $event.target)">Результат</b-button>
+                        <b-button size="sm" class="mr-sm" variant="primary" @click="edit(row.item, row.index, $event.target)">Результат</b-button>
                         <b-button size="sm" class="mr-sm" variant="success" @click="show(row.item, row.index, $event.target)">Методички</b-button>
+                        <b-button size="sm" class="mr-sm" variant="warning" @click="deleteTest(row.item.id)">Удалить</b-button>
                     </div>
                   </template>
                   <template #cell(otdelNew)="row2">
@@ -140,6 +140,35 @@ export default {
       label: 'Обрабатывем данные...'
   }),
   methods: {
+    deleteTest(test){
+      this.$bvModal.msgBoxConfirm('ВНИМАНИЕ! СИСТЕМА РАБОТАЕТ НА РЕАЛЬНЫХ ДАННЫХ  Вы действительно хотите удалить данный тест? ', {
+        title: 'Удаление теста',
+        okVariant: 'danger',
+        okTitle: 'ДА',
+        cancelTitle: 'НЕТ',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      })
+          .then(value => {
+            if(value){
+              axios({
+                url: 'http://194.87.101.58/json/deletetest',
+                method: 'POST',
+                params: {
+                  test: test
+                },
+              })
+                  .then(() => {
+                    axios.get('http://194.87.101.58/json/AllTests')
+                        .then(res => {
+                          this.people = res.data;
+                          this.filter = ''
+                        })
+                  })
+            }
+          })
+    },
     getlearning(id){
       this.show2 = true
       axios({
