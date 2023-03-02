@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard-page">
+
     <h1 class="page-title">Список пользователей</h1>
     <b-row>
         <b-col xs="12">
@@ -45,9 +46,44 @@
                 >
                   <template #cell(actions)="row">
                     <div>
-                        <b-button size="sm" class="mr-sm" @click="getreports(row.item, row.index, $event.target)" variant="primary">Отчеты</b-button>
-                        <b-button size="sm" class="mr-sm" variant="warning" @click="edit(row.item, row.index, $event.target)">Изменить</b-button>
-                        <b-button size="sm"  variant="danger">Удалить</b-button>
+                        <b-button
+                            size="sm"
+                            class="mr-sm"
+                            @click="getreports(row.item, row.index, $event.target)"
+                            variant="primary"
+                        >Отчеты</b-button>
+                        <b-overlay
+                            :show="busy"
+                            rounded
+                            opacity="0.6"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                        >
+                          <b-button
+                              :disabled="busy"
+                              size="sm"
+                              class="mr-sm"
+                              variant="primary"
+                              :id="'myid-'+row.item.id"
+                              @click="result(row.item)"
+                          >Результат
+                          </b-button>
+                        </b-overlay>
+
+                        <b-button
+                            size="sm"
+                            class="mr-sm"
+                            variant="warning"
+                            @click="edit(row.item, row.index, $event.target)"
+                        >Изменить
+                        </b-button>
+
+                        <b-button
+                            size="sm"
+                            variant="danger"
+                        >Удалить
+                        </b-button>
                     </div>
                   </template>
                 </b-table>
@@ -81,13 +117,106 @@
         <label for="input-live">Профессия:</label>
         <b-form-input id="profession" v-model="infoModal.content.Профессия" placeholder="Enter your name"></b-form-input>
       </b-modal>
-    <!-- Info modal -->
-    <b-modal centered :id="RepModal.id" title="Список пройденных тестов" ok-only @hide="resetInfoModal">
-      <b-list-group >
-        <b-list-group-item button v-for="report in RepModal.content" :key="report.id" @click="getreport(report, selected)" >{{report.Name_t }} (  {{report.kvartal}} квартал {{report.year}} года) </b-list-group-item>
-      </b-list-group>
 
-    </b-modal>
+    <!-- Popover for SET MARK -->
+    <b-popover
+        :target="idResultShow"
+        triggers="click"
+        :show.sync="popoverShow"
+        placement="auto"
+        container="my-container"
+        ref="popover"
+        style="min-width: 300px"
+    >
+      <template #title>
+        Установить результат
+      </template>
+
+      <div>
+
+        <b-form-group
+            label="Квартал/Год"
+            label-for="popover-input-2"
+            label-cols-sm="4"
+            label-align-sm="right"
+            class="mb-2"
+            style=""
+            v-slot="{ ariaDescribedby }"
+            invalid-feedback="Заполните все поля"
+        >
+          <b-form-select
+              id="popover-input-2"
+              v-model="kvartal"
+              style="width: 50%"
+              :options="[1, 2, 3, 4]"
+              :aria-describedby="ariaDescribedby"
+              @change="getTestForMark()"
+          ></b-form-select>
+          <b-form-select
+              :disabled="!Boolean(kvartal)"
+              style="width: 50%"
+              id="popover-input-3"
+              v-model="year"
+              :options="[2022, 2023, 2024, 2025]"
+              :aria-describedby="ariaDescribedby"
+              @change="getTestForMark()"
+          ></b-form-select>
+        </b-form-group>
+
+        <b-form-group
+            label="Тест"
+            label-for="input-formatter"
+            class="mb-2"
+            label-cols="3"
+            v-if="testsForMark.length > 0"
+        >
+          <b-form-select
+              v-model="testMark"
+              :options="testsForMark"
+              value-field="id"
+              text-field="Name_t"
+              :state="Boolean(testMark)"
+          ></b-form-select>
+        </b-form-group>
+
+        <b-form-group
+            v-if="testsForMark.length > 0"
+            label="Оценка"
+            label-for="popover-input-1"
+            label-cols="3"
+            class="mb-1"
+        >
+          <b-form-input
+              ref="input1"
+              id="popover-input-1"
+              size="sm"
+              :state="Boolean(mark)"
+              v-model="mark"
+          ></b-form-input>
+        </b-form-group>
+
+        <b-form-group
+            v-if="testsForMark.length > 0"
+            label="Дата"
+            label-for="popover-input-2"
+            label-cols="3"
+            :state="Boolean(markDate)"
+            class="mb-1"
+            invalid-feedback="Заполните поле"
+        >
+          <b-form-input
+              type="date"
+              id="popover-input-2"
+              v-model="markDate"
+              :state="Boolean(markDate)"
+              size="sm"
+          ></b-form-input>
+        </b-form-group>
+
+        <b-button @click="onClose" size="sm mr-2" variant="danger">Отмена</b-button>
+        <b-button v-if="testsForMark.length > 0" @click="onOk" size="sm" variant="primary">Записать</b-button>
+      </div>
+    </b-popover>
   </div>
 </template>
 
@@ -130,8 +259,89 @@ export default {
         id: 'rep-modal',
         content: ''
       },
+      isSetResult: false,
+      popoverShow: false,
+      idResultShow: '',
+      mark:'',
+      markDate: '',
+      kvartal: '',
+      year: '',
+      otdelMark:'',
+      testMark:'',
+      busy: false,
+      testsForMark:[],
+      phone: ''
   }),
   methods: {
+    getTestForMark(){
+      if(this.year === '') return;
+      else{
+        axios({
+          url: 'http://194.87.101.58/json/testsForMark',
+          method: 'GET',
+          params: {
+            kvartal: this.kvartal,
+            year: this.year,
+            otdel: this.otdelMark
+          },
+        })
+            .then((res) => {
+              this.testsForMark = res.data;
+              // this.show2 = false;
+            })
+      }
+    },
+    onOk(){
+      axios({
+        url: 'http://194.87.101.58/json/SetMark',
+        method: 'POST',
+        params: {
+          peoples: this.phone,
+          tests: this.testMark,
+          deadline: this.markDate,
+          mark: this.mark
+        },
+      })
+          .then((res) => {
+            if(res.data[0] === 200){
+              this.$bvToast.toast('Пользователю успешно добавлена оценка', {
+                title: 'Оценка установлена',
+                variant: 'success',
+                solid: true
+              })
+              this.popoverShow = false
+            }
+            else{
+              this.$bvToast.toast(res.data[1], {
+                title: 'Ошибка',
+                variant: 'success',
+                solid: true
+              })
+            }
+
+          })
+    },
+    onClose() {
+      this.popoverShow = false
+    },
+    result(item){
+      this.busy = true
+      this.popoverShow = false
+      this.mark = ''
+      this.markDate = ''
+      this.idResultShow = "myid-"+item.id
+      this.otdelMark = item.IdDepart
+      this.phone = item.Телефон
+      setTimeout(() => {
+        this.popoverShow = true
+        // this.show2 = false;
+        this.busy = false
+      }, 300)
+    },
+    SetResult(id){
+      this.idResultShow = "listGroup-" +id
+      this.popoverShow = true;
+    },
     getreports(item, index, button){
       //this.show2 = true
       axios({
@@ -193,6 +403,7 @@ export default {
     resetInfoModal() {
       this.infoModal.title = ''
       this.infoModal.content = ''
+      this.isSetResult = false
     },
     onFiltered(filteredItems) {
       // Trigger pagination to update the number of buttons/pages due to filtering

@@ -49,7 +49,6 @@
                 >
                   <template #cell(actions)="row">
                     <div>
-                        <b-button size="sm" class="mr-sm" variant="primary" @click="edit(row.item, row.index, $event.target)">Результат</b-button>
                         <b-button size="sm" class="mr-sm" variant="success" @click="show(row.item, row.index, $event.target)">Методички</b-button>
                         <b-button size="sm" class="mr-sm" variant="warning" @click="deleteTest(row.item.id)">Удалить</b-button>
                     </div>
@@ -193,12 +192,6 @@ export default {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    },
-    edit(item, index, button) {
-      this.selected = item.IdDepart;
-      this.infoModal.title = item.ФИО;
-      this.infoModal.content = item;
-      this.$root.$emit('bv::show::modal', this.infoModal.id, button)
     },
     show(item, index, button) {
       var t = this.books.filter(x => x.Name_t === item.Name_t && x.year === item.year && x.kvartal === item.kvartal);
