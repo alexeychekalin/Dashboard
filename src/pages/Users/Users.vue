@@ -64,7 +64,7 @@
                               :disabled="busy"
                               size="sm"
                               class="mr-sm"
-                              variant="primary"
+                              variant="success"
                               :id="'myid-'+row.item.id"
                               @click="result(row.item)"
                           >Результат
@@ -82,6 +82,7 @@
                         <b-button
                             size="sm"
                             variant="danger"
+                            @click="deleteUser(row.item)"
                         >Удалить
                         </b-button>
                     </div>
@@ -273,6 +274,37 @@ export default {
       phone: ''
   }),
   methods: {
+    deleteUser(item){
+      this.$bvModal.msgBoxConfirm('ВНИМАНИЕ! СИСТЕМА РАБОТАЕТ НА РЕАЛЬНЫХ ДАННЫХ  Вы действительно хотите удалить пользователя? ', {
+      title: 'Удаление пользователя',
+      okVariant: 'danger',
+      okTitle: 'ДА',
+      cancelTitle: 'НЕТ',
+      footerClass: 'p-2',
+      hideHeaderClose: false,
+      centered: true
+    })
+        .then(value => {
+          if(value){
+            axios({
+              url: 'http://194.87.101.58/json/deleteuser',
+              method: 'POST',
+              params: {
+                chatid: item.ChatID,
+                id: item.id
+              },
+            })
+                .then(() => {
+                  this.$bvToast.toast('Пользователm успешно удален', {
+                    title: 'Удаление пользователя',
+                    variant: 'success',
+                    solid: true
+                  })
+                })
+          }
+        })
+
+    },
     getTestForMark(){
       if(this.year === '') return;
       else{
