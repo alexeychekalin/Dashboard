@@ -105,9 +105,9 @@
         </b-col>
       </b-row>
       <!-- Info modal -->
-      <b-modal centered :id="infoModal.id" :title="infoModal.title" ok-only @hide="resetInfoModal">
+      <b-modal centered :id="infoModal.id" :title="infoModal.title" hide-footer @hide="resetInfoModal">
         <label for="input-live">ФИО:</label>
-        <b-form-input id="name" v-model="infoModal.content.ФИО" placeholder="Enter your name"></b-form-input>
+        <b-form-input disabled id="name" v-model="infoModal.content.ФИО" placeholder="Enter your name"></b-form-input>
         <label for="input-live">Отдел:</label>
         <b-form-select
             v-model="selected"
@@ -117,6 +117,15 @@
         ></b-form-select>
         <label for="input-live">Профессия:</label>
         <b-form-input id="profession" v-model="infoModal.content.Профессия" placeholder="Enter your name"></b-form-input>
+        <b-button class="mt-4"  variant="success" block @click="editUser(selected, infoModal.content.Профессия, infoModal.content.id)">Обновить</b-button>
+      </b-modal>
+
+      <!-- Repots modal -->
+      <b-modal centered :id="RepModal.id" title="Список пройденных тестов" ok-only @hide="resetInfoModal">
+        <b-list-group >
+          <b-list-group-item button v-for="report in RepModal.content" :key="report.id" @click="getreport(report, selected)" >{{report.Name_t }} (  {{report.kvartal}} квартал {{report.year}} года) </b-list-group-item>
+        </b-list-group>
+
       </b-modal>
 
     <!-- Popover for SET MARK -->
@@ -274,6 +283,34 @@ export default {
       phone: ''
   }),
   methods: {
+    editUser(otdel, prof, id){
+      axios({
+        url: 'http://194.87.101.58/json/edituser',
+        method: 'POST',
+        params: {
+          otdel: otdel,
+          prof: prof,
+          id: id
+        },
+      })
+          .then((res) => {
+            if(res.data[0] === 200){
+              this.$toasted.success('Пользователь успешно обновлен!', {
+                action: {
+                  text: 'OK',
+                }
+              })
+            }
+            else{
+              this.$toasted.error('Ошибка при обновлении пользователя!', {
+                action: {
+                  text: 'OK',
+                }
+              })
+            }
+
+          })
+    },
     deleteUser(item){
       this.$bvModal.msgBoxConfirm('ВНИМАНИЕ! СИСТЕМА РАБОТАЕТ НА РЕАЛЬНЫХ ДАННЫХ  Вы действительно хотите удалить пользователя? ', {
       title: 'Удаление пользователя',
@@ -294,16 +331,16 @@ export default {
                 id: item.id
               },
             })
-                .then(() => {
-                  this.$bvToast.toast('Пользователm успешно удален', {
-                    title: 'Удаление пользователя',
-                    variant: 'success',
-                    solid: true
-                  })
-                })
+            .then(() => {
+              this.$root.$emit('bv::hide::modal', this.infoModal.id)
+              this.$toasted.success('Пользователю успешно добавлена оценка!', {
+                action: {
+                  text: 'OK',
+                }
+              })
+            })
           }
         })
-
     },
     getTestForMark(){
       if(this.year === '') return;

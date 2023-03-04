@@ -76,20 +76,6 @@
         </b-col>
       </b-row>
       <!-- Info modal -->
-      <b-modal centered :id="infoModal.id" :title="infoModal.title" ok-only @hide="resetInfoModal">
-        <label for="input-live">ФИО:</label>
-        <b-form-input id="name" v-model="infoModal.content.ФИО" placeholder="Enter your name"></b-form-input>
-        <label for="input-live">Отдел:</label>
-        <b-form-select
-            v-model="selected"
-            :options="otdel"
-            value-field="id"
-            text-field="Name"
-        ></b-form-select>
-        <label for="input-live">Профессия:</label>
-        <b-form-input id="profession" v-model="infoModal.content.Профессия" placeholder="Enter your name"></b-form-input>
-      </b-modal>
-      <!-- Info modal -->
       <b-modal centered :id="BookModal.id" :title="BookModal.title" ok-only @hide="resetInfoModal">
         <b-list-group >
           <b-list-group-item button v-for="(book, ind) in BookModal.content" :key="book.id" @click="getlearning(book.id)" >{{ind + 1}}. {{book.Description.split('/').pop()}}</b-list-group-item>
