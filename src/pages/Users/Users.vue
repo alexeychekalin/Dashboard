@@ -333,11 +333,12 @@ export default {
             })
             .then(() => {
               this.$root.$emit('bv::hide::modal', this.infoModal.id)
-              this.$toasted.success('Пользователю успешно добавлена оценка!', {
+              this.$toasted.success('Пользователь удален!', {
                 action: {
                   text: 'OK',
                 }
               })
+              //TODO: ОБНОВЛЯТЬ СПИСОК ПОСЛЕ УДАЛЕНИЯ
             })
           }
         })

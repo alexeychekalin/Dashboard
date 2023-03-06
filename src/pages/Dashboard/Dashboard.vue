@@ -18,7 +18,7 @@
                 Пользователи
               </h4>
               <b-dropdown text="Действия" variant="default" size="sm">
-                <b-dropdown-item-button @click="changeText('Daily')">Добавить</b-dropdown-item-button>
+                <b-dropdown-item-button @click="clickAddUser()">Добавить</b-dropdown-item-button>
                 <b-dropdown-item-button @click="changeText('Weekly')">Пакетная загрузка</b-dropdown-item-button>
                 <b-dropdown-item-button @click="$router.push('users')">Список пользователей</b-dropdown-item-button>
                 <b-dropdown-item-button @click="changeText('Daily')">Управление адмнистраторами</b-dropdown-item-button>
@@ -308,6 +308,97 @@
       </b-form-group>
       <b-button class="mt-4" v-if="Boolean(checker())" variant="success" block @click="uploadTest()">Загрузить</b-button>
     </b-modal>
+
+    <!-- Add USER test modal -->
+    <b-modal centered id="adduser" hide-footer title="Добавление пользователя" @hide="resetAddUserModal">
+      <b-alert
+          class="mb-3"
+          v-if="alert !== ''"
+          show
+          :variant="alert"
+      >
+        {{alertMessage}}
+      </b-alert>
+      <b-form-group
+          label="Фамилия"
+          label-for="input-formatter"
+          class="mb-0"
+      >
+        <b-form-input
+            :state="Boolean(addUser.f)"
+            id="uf"
+            v-model="addUser.f"
+            placeholder="Введите фамилию"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+          label="Имя"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-input
+            id="un"
+            :state="Boolean(addUser.i)"
+            v-model="addUser.i"
+            placeholder="Введите имя"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+          label="Отчество"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-input
+            :state="Boolean(addUser.o)"
+            id="uo"
+            v-model="addUser.o"
+            placeholder="Введите ответственного"
+        ></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+          label="Телефон"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-input
+            :state="Boolean(addUser.t)"
+            id="ut"
+            v-model="addUser.t"
+            placeholder="Введите телефон"
+        ></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+          label="Отдел"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-select
+            :state="Boolean(addUser.d)"
+            v-model="addUser.d"
+            :options="otdel"
+            value-field="id"
+            text-field="Name"
+        ></b-form-select>
+      </b-form-group>
+
+      <b-form-group
+          label="Профессия"
+          label-for="input-formatter"
+          class="mb-0 mt-3"
+      >
+        <b-form-input
+            :state="Boolean(addUser.p)"
+            id="ut"
+            v-model="addUser.p"
+            placeholder="Введите профессию"
+        ></b-form-input>
+      </b-form-group>
+
+      <b-button class="mt-4" v-if="Boolean(checkerU())" variant="success" block @click="newUser()">Создать</b-button>
+    </b-modal>
+
   </div>
 </template>
 
@@ -332,6 +423,14 @@ export default {
         content: '',
         who:''
       },
+      addUser:{
+        f:'',
+        i:'',
+        o:'',
+        d:'',
+        t:'',
+        p:''
+      },
       testupload:{
         name_test:'',
         otvetstv:'',
@@ -342,6 +441,10 @@ export default {
         depart:'',
         id: 'test-upload'
       },
+      roles:[
+        {id: 1, Name: 'Администратор'},
+        {id: 2, Name: 'Пользователь'}
+      ],
       selected :'',
       showDate: new Date(),
       events: [],
@@ -356,8 +459,40 @@ export default {
 
   }),
   methods: {
+    newUser(){
+      axios({
+        url: 'http://194.87.101.58/json/adduser',
+        method: 'POST',
+        params: {
+          f: this.addUser.f,
+          i: this.addUser.i,
+          o: this.addUser.o,
+          d: this.addUser.d,
+          t: this.addUser.t,
+          p: this.addUser.p
+        },
+      })
+          .then((res) => {
+            if (res.data[0] === 200) {
+              this.$toasted.success(res.data[1], {
+                action: {
+                  text: 'OK',
+                }
+              })
+              this.resetAddUserModal()
+              this.$root.$emit('bv::hide::modal', 'adduser')
+            } else {
+              this.$root.$emit('bv::hide::modal', 'adduser')
+              this.alert = 'danger'
+              this.alertMessage = res.data[0]
+            }
+          })
+    },
     checker(){
       return Boolean(this.testupload.files)&&Boolean(this.testupload.name_test)&&Boolean(this.testupload.name_test)&&Boolean(this.testupload.dolch_otvetstv)&&Boolean(this.testupload.deadline)&&Boolean(this.testupload.depart)
+    },
+    checkerU(){
+      return Boolean(this.addUser.p)&&Boolean(this.addUser.f)&&Boolean(this.addUser.i)&&Boolean(this.addUser.o)&&Boolean(this.addUser.d)&&Boolean(this.addUser.t)
     },
     handleFileUpload(){
       this.testupload.files = event.target.files[0];
@@ -452,6 +587,9 @@ export default {
     clickUploadTests(){
       this.$root.$emit('bv::show::modal', this.testupload.id)
     },
+    clickAddUser(){
+      this.$root.$emit('bv::show::modal', 'adduser')
+    },
     clickReportOtdel(){
       this.$root.$emit('bv::show::modal', 'reportOtdel_modal')
     },
@@ -475,6 +613,14 @@ export default {
       this.testupload.dolch_otvetstv = ''
       this.testupload.files = null
       this.testupload.descr_text = ''
+    },
+    resetAddUserModal(){
+      this.addUser.o = ''
+      this.addUser.i = ''
+      this.addUser.f = ''
+      this.addUser.d = ''
+      this.addUser.t = ''
+      this.addUser.p = ''
     },
 
     onFiltered(filteredItems) {
