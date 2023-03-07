@@ -8,7 +8,7 @@
         <router-view />
       </transition>
       <footer class="contentFooter">
-        Sing App Vue Dashboard Free Template - Made by <a href="https://flatlogic.com" rel="nofollow noopener noreferrer" target="_blank">Flatlogic</a>
+        Административная панель системы тестирования в мессенджере Telegram - Сделано командой <a href="https://t.me/edchek" rel="nofollow noopener noreferrer" target="_blank">TeamPack</a>
       </footer>
     </v-touch>
   </div>

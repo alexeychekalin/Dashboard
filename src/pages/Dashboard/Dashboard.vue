@@ -19,7 +19,7 @@
               </h4>
               <b-dropdown text="Действия" variant="default" size="sm">
                 <b-dropdown-item-button @click="clickAddUser()">Добавить</b-dropdown-item-button>
-                <b-dropdown-item-button @click="changeText('Weekly')">Пакетная загрузка</b-dropdown-item-button>
+                <b-dropdown-item-button @click="clickUserPack()">Пакетная загрузка</b-dropdown-item-button>
                 <b-dropdown-item-button @click="$router.push('users')">Список пользователей</b-dropdown-item-button>
                 <b-dropdown-item-button @click="changeText('Daily')">Управление адмнистраторами</b-dropdown-item-button>
                 <b-dropdown-item-button @click="registered()">Отчет по зарегистрированным</b-dropdown-item-button>
@@ -399,6 +399,33 @@
       <b-button class="mt-4" v-if="Boolean(checkerU())" variant="success" block @click="newUser()">Создать</b-button>
     </b-modal>
 
+    <!-- Upload userpack modal -->
+    <b-modal centered id="userPack" hide-footer title="Пакетная загрузка пользователей" @hide="resetPackdModal">
+      <b-alert
+          class="mb-3"
+          v-if="alert !== ''"
+          show
+          :variant="alert"
+      >
+        {{alertMessage}}
+      </b-alert>
+      <b-form-group
+          label="Выберите файл с пользователями"
+          label-for="input-formatter"
+          class="mb-0"
+      >
+        <b-form-file
+            multiple
+            :state="Boolean(userPackFile)"
+            placeholder="Выберите файл"
+            drop-placeholder="Перетащите файл"
+            accept=".xls, .xlsx"
+            @change="handleFileUploadUser( $event )"
+        ></b-form-file>
+      </b-form-group>
+      <b-button class="mt-4" v-if="Boolean(userPackFile)" variant="success" block @click="uploadUserPack()">Загрузить</b-button>
+    </b-modal>
+
   </div>
 </template>
 
@@ -456,6 +483,7 @@ export default {
       reportsForOtdel: [],
       alert:'',
       alertMessage:'',
+      userPackFile: null
 
   }),
   methods: {
@@ -496,6 +524,31 @@ export default {
     },
     handleFileUpload(){
       this.testupload.files = event.target.files[0];
+    },
+    handleFileUploadUser(){
+      this.userPackFile = event.target.files[0];
+    },
+    uploadUserPack(){
+      let formData = new FormData();
+      formData.append('files', this.userPackFile);
+      const config = {
+        headers: { 'content-type': 'multipart/form-data' }
+      }
+      axios.post('http://194.87.101.58/json/proc_users', formData, config)
+          .then((res) => {
+            if(res.data[1] === 200){
+              this.alert = 'success'
+              this.alertMessage = res.data[0]
+              this.resetUploadModal()
+            }
+            else{
+              this.$root.$emit('bv::hide::modal', 'reportOtdel_modal')
+
+              this.alert = 'danger'
+              this.alertMessage = res.data[0]
+            }
+            this.show = false;
+          })
     },
     uploadTest(){
       //let file = this.testupload.files.$refs.file.files[0];
@@ -587,6 +640,9 @@ export default {
     clickUploadTests(){
       this.$root.$emit('bv::show::modal', this.testupload.id)
     },
+    clickUserPack(){
+      this.$root.$emit('bv::show::modal', 'userPack')
+    },
     clickAddUser(){
       this.$root.$emit('bv::show::modal', 'adduser')
     },
@@ -604,6 +660,9 @@ export default {
     resetReportOtdel() {
       this.selReportotdel = ''
       this.reportsForOtdel = []
+    },
+    resetPackdModal(){
+      this.userPackFile = null;
     },
     resetUploadModal() {
       this.testupload.name_test = ''

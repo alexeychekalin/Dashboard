@@ -338,7 +338,8 @@ export default {
                   text: 'OK',
                 }
               })
-              //TODO: ОБНОВЛЯТЬ СПИСОК ПОСЛЕ УДАЛЕНИЯ
+              this.people = this.people.filter(function( obj ) {
+                return obj.id !== item.id; })
             })
           }
         })

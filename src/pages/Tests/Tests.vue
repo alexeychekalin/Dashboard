@@ -50,6 +50,7 @@
                   <template #cell(actions)="row">
                     <div>
                         <b-button size="sm" class="mr-sm" variant="success" @click="show(row.item, row.index, $event.target)">Методички</b-button>
+                        <b-button size="sm" class="mr-sm" variant="info" @click="show(row.item, row.index, $event.target)">Добавить</b-button>
                         <b-button size="sm" class="mr-sm" variant="warning" @click="deleteTest(row.item.id)">Удалить</b-button>
                     </div>
                   </template>
@@ -78,7 +79,17 @@
       <!-- Info modal -->
       <b-modal centered :id="BookModal.id" :title="BookModal.title" ok-only @hide="resetInfoModal">
         <b-list-group >
-          <b-list-group-item button v-for="(book, ind) in BookModal.content" :key="book.id" @click="getlearning(book.id)" >{{ind + 1}}. {{book.Description.split('/').pop()}}</b-list-group-item>
+          <b-list-group-item
+              class="d-flex justify-content-between align-items-center"
+              button
+              v-for="(book, ind) in BookModal.content"
+              :key="book.id"
+
+          >
+            <b-link @click="getlearning(book.id)" href="#">{{ind + 1}}. {{book.Description.split('/').pop()}}</b-link>
+            <b-badge @click="deleteBook(book.id)" variant="danger" v-b-tooltip.hover title="Удалить" pill>X</b-badge>
+          </b-list-group-item>
+
         </b-list-group>
       </b-modal>
   </div>
@@ -125,6 +136,32 @@ export default {
       label: 'Обрабатывем данные...'
   }),
   methods: {
+    deleteBook(id){
+      axios({
+        url: 'http://194.87.101.58/json/deletebook',
+        method: 'POST',
+        params: {
+          id: id
+        },
+      })
+          .then((res) => {
+            if (res.data[0] === 200) {
+              this.$toasted.success(res.data[1], {
+                action: {
+                  text: 'OK',
+                }
+              })
+              this.BookModal.content = this.BookModal.content.filter(function( obj ) {
+                return obj.id !== id; })
+            } else {
+              this.$toasted.error('Ошибка удаления!', {
+                action: {
+                  text: 'OK',
+                }
+              })
+            }
+          })
+    },
     deleteTest(test){
       this.$bvModal.msgBoxConfirm('ВНИМАНИЕ! СИСТЕМА РАБОТАЕТ НА РЕАЛЬНЫХ ДАННЫХ  Вы действительно хотите удалить данный тест? ', {
         title: 'Удаление теста',
