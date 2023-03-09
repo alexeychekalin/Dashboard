@@ -504,7 +504,7 @@ export default {
             if (res.data[0] === 200) {
               this.$toasted.success(res.data[1], {
                 action: {
-                  text: 'OK',
+                  text: 'Новый пользователь добавлен!',
                 }
               })
               this.resetAddUserModal()
